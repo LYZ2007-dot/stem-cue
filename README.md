@@ -2,6 +2,8 @@
 
 **从题目条件到解题策略，建立“下一步该怎么做”的直觉。**
 
+当前发布版本：**v0.1.0**，首个公开开发版本。功能与输出规范仍可能调整；版本变更见 [CHANGELOG.md](CHANGELOG.md)。根目录旧文档文件名中的 `v1.4`、`v2` 属于历史草稿编号，不对应 GitHub 发布版本。
+
 `stem-cue` 是一个面向大学理工科题目的 AI 解题辅导 skill，适用于高等数学、大学物理、概率统计、电路分析，以及模拟与数字电子技术等课程。
 
 STEM 指 Science、Technology、Engineering、Mathematics（科学、技术、工程与数学）；cue 指提示或触发线索。项目希望帮助学习者把每个关键条件，与对应的公式、模型和处理策略联系起来。
@@ -41,48 +43,49 @@ STEM 指 Science、Technology、Engineering、Mathematics（科学、技术、�
 
 本项目以 Markdown 指令文件提供 skill，无需安装 Python 或 Node.js 依赖。需要先准备可加载本地 skills 的 Codex 环境。
 
-当前 README 以 [v1.4 指令文件](stem-problem-mapper-v1.4.md) 为功能基准。该文件仍保留旧名称 `stem-problem-mapper`，安装时需要将其转换为下面的结构：
+正式 skill 入口为 [`skills/stem-cue/SKILL.md`](skills/stem-cue/SKILL.md)。版本归档文件保留在项目根目录；安装时使用正式入口，不需要手动改名或修改 frontmatter。
 
 ```text
-<Codex skills 目录>/
-└── stem-cue/
-    └── SKILL.md
+项目根目录/
+└── skills/
+    └── stem-cue/
+        └── SKILL.md
 ```
 
-1. 下载本项目文件，进入项目根目录。
-2. 在 Codex 的 skills 目录中创建 `stem-cue` 文件夹。本机使用的目录约定为 `$CODEX_HOME/skills`；未设置 `CODEX_HOME` 时，默认为 `~/.codex/skills`。
-3. 将 `stem-problem-mapper-v1.4.md` 复制到该文件夹，并将副本命名为 `SKILL.md`。
-4. 打开副本，将文件顶部的 `name: stem-problem-mapper` 改为 `name: stem-cue`。
-5. 重启 Codex，使其重新加载 skills。
+**从 GitHub 安装**：在 Codex 中发送以下提示词，将安装来源固定到本次发布的版本：
 
-Windows 用户可以在项目根目录运行以下 PowerShell 命令，完成第 2～4 步。命令会保留原始版本文件；如果目标已存在，则停止，避免覆盖已有安装。
+```text
+$skill-installer 请从 https://github.com/LYZ2007-dot/stem-cue/tree/v0.1.0/skills/stem-cue 安装 stem-cue。
+```
+
+**手动安装**：
+
+1. 下载 [v0.1.0 源码](https://github.com/LYZ2007-dot/stem-cue/archive/refs/tags/v0.1.0.zip)并解压，进入项目根目录。
+2. 将 `skills/stem-cue` 整个文件夹复制到用户 skills 目录 `~/.agents/skills`。若只希望在某个项目中使用，则复制到该项目的 `.agents/skills`。
+3. Codex 会自动检测 skill；如果没有出现，重启 Codex。
+
+Windows 用户可以在项目根目录运行以下 PowerShell 命令完成安装。命令会保留仓库中的源文件；如果目标已存在，则停止，避免覆盖已有安装。
 
 ```powershell
-$codexBase = if ($env:CODEX_HOME) {
-    $env:CODEX_HOME
-} else {
-    Join-Path $HOME '.codex'
-}
-$skillDir = Join-Path $codexBase 'skills/stem-cue'
+$skillsDir = Join-Path $HOME '.agents/skills'
+$skillDir = Join-Path $skillsDir 'stem-cue'
 if (Test-Path -LiteralPath $skillDir) {
     throw "目标目录已存在，请先检查已有安装：$skillDir"
 }
 
-$source = Get-Content -LiteralPath './stem-problem-mapper-v1.4.md' -Raw -Encoding UTF8
-$source = $source -replace '(?m)^name: stem-problem-mapper\r?$', 'name: stem-cue'
-New-Item -ItemType Directory -Path $skillDir -Force | Out-Null
-Set-Content -LiteralPath (Join-Path $skillDir 'SKILL.md') -Value $source -Encoding UTF8
+New-Item -ItemType Directory -Path $skillsDir -Force | Out-Null
+Copy-Item -LiteralPath './skills/stem-cue' -Destination $skillsDir -Recurse
 ```
 
 不同版本的客户端可能使用不同的发现路径，相关配置可参考 [Codex 官方 Skills 文档](https://developers.openai.com/codex/skills/)。
 
 ### 在其他 AI 对话工具中使用
 
-如果客户端支持自定义 skills，按其规则导入上述 `stem-cue/SKILL.md`。也可以将 v1.4 指令文件的正文粘贴到对话中，要求 AI 按该规则讲题，再发送题目。这种方式仅在当前对话中提供指令，不等同于安装本地 skill。
+如果客户端支持自定义 skills，按其规则导入 [`skills/stem-cue/SKILL.md`](skills/stem-cue/SKILL.md)。也可以将该文件的正文粘贴到对话中，要求 AI 按该规则讲题，再发送题目。这种方式仅在当前对话中提供指令，不等同于安装本地 skill。
 
 ## 4. 使用方法
 
-安装并重启后，在 Codex 中通过 `$stem-cue` 显式调用，再输入题目或附上图片。例如：
+安装并加载后，在 Codex 中通过 `$stem-cue` 显式调用，再输入题目或附上图片。例如：
 
 ```text
 $stem-cue 请讲解这道题，帮我建立条件与解题策略之间的联系：
